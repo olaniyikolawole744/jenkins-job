@@ -1,0 +1,41 @@
+---
+- name: Compile and run Java file on remote machine
+  hosts: client
+  become: yes
+  tasks:
+    - name: Run install_dependencies.sh script
+      script: myscript.sh
+
+- name : target host machine
+  hosts: server
+  become: yes
+  tasks:
+    - name: Install Java on Debian/Ubuntu
+      apt:
+        name: openjdk-17-jdk
+        state: present
+        update_cache: yes
+
+    - name: Copy file from control machine to remote
+      copy:
+        src: AddNumbers.java   # file on your Ansible control machine
+        dest: /home/ubuntu/AddNumbers.java # destination on remote host
+        owner: root                    # optional
+        group: root                    # optional
+        mode: '0644'
+
+    - name: Copy Java file to remote machine
+      copy:
+        src: AddNumbers.java
+        dest: /home/ubuntu/AddNumbers.java
+        mode: '0644'
+
+    - name: Compile Java file
+      command: javac AddNumbers.java
+      args:
+        chdir: /home/ubuntu
+
+    - name: Run Java program
+      command: java AddNumbers
+      args:
+        chdir: /home/ubuntu
